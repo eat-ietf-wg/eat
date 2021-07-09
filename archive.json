@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2021-06-07T20:49:56.181129+00:00",
+  "timestamp": "2021-07-09T00:58:36.633205+00:00",
   "repo": "ietf-rats-wg/eat",
   "labels": [
     {
@@ -1796,15 +1796,15 @@
       "id": "MDU6SXNzdWU4MDc1NzEwNDI=",
       "title": "Modify wording for location claim",
       "url": "https://github.com/ietf-rats-wg/eat/issues/91",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "gmandyam",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "As per sec. 3.13 of ver. 8:\r\n\r\nFrom Santeri Paavolainen:\r\n\r\n\"If the device is stationary, the heading is NaN (floating-point not-a-number).\"\r\n\r\nBut heading -- for some devices -- may be accurately determined even when the device is stationary. For example, a directional radio mast (permanent or adjustable orientation) is (at least hopefully) very stationary, but it includes an accurate directional indication.\r\n\r\nI would suggest writing this as\r\n\r\n\"If the device's heading can not be accurately determined, the heading is NaN (floating-point not-a-number).\"\r\n\r\nI would also point out that many devices may have an initial accurate heading, but it may drift over time if they are stationary even if they can be accurately positioned. For example, a gyrocompass without an orientation reset will lose its accuracy over time (i.e. it will drift, but the drift may be not consistent so in reality its the error that increases). Is there a consideration to include orientation accuracy in a way similar to positional accuracy?\r\n",
       "createdAt": "2021-02-12T21:53:53Z",
-      "updatedAt": "2021-05-24T04:54:10Z",
-      "closedAt": null,
+      "updatedAt": "2021-06-07T22:38:43Z",
+      "closedAt": "2021-06-07T22:38:43Z",
       "comments": [
         {
           "author": "laurencelundblade",
@@ -2029,9 +2029,86 @@
       "labels": [],
       "body": "In some scenarios, it is desirable that only the positive or negative result of a measurement, possibly only a Boolean value, is reported in a token. This is in contrast to reporting the measurements (e.g., the hashes) themselves.\r\n\r\nOne scenarios is when a TEE or similar is able to conduct a full measurement and evaluation of that measurement on some other part of the system.\r\n\r\nAnother is when a Verifier checks the measurement against reference values and only reports the result to the Relying Party.",
       "createdAt": "2021-05-28T18:35:36Z",
-      "updatedAt": "2021-05-28T18:35:36Z",
+      "updatedAt": "2021-06-08T18:21:24Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "gmandyam",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Would the following (CDDL) work?\r\n\r\nmeasurement-type = {\r\n   ? check => boolean, / Set true if measurement met criteria for pass\r\n   ? hash => bstr(32..64) / Variable-length hash; must be minimum of 256\r\n   }\r\n\r\nmeasurement = {\r\n     value => measurement-type\r\n    }  / Array of measurements\r\n\r\nThis way each measurement value can provide a check, hash, both, or neither (e.g. if the measurement wasn't carried out for some reason).",
+          "createdAt": "2021-06-07T22:48:14Z",
+          "updatedAt": "2021-06-07T22:48:14Z"
+        },
+        {
+          "author": "nedmsmith",
+          "authorAssociation": "NONE",
+          "body": "I think there should be digest claim that can be used for evidence claims (and for attestation results too). Coswid defines hash-entry which is a tuple consisting of a digest value and a hash algorithm. \r\n\r\nFor firmware measurements (anything that doesn't have a filesystem) coswid is problematic because measurements have to be given a filesystem context. Given there is a submods context already, it doesn't make sense to require a filesystem context that requires some sort of mapping to a device context. E.g. submod-name has to match file-name or whatever.\r\n\r\nBuilding hash-entry into an array of hash-entry has value for algorithm agility. A device can produce multiple digests of the same object with different algorithms. The overhead is small in CDDL. Device vendors don't have to implement algorithm agility, but it is good for those who do.\r\n\r\nIf the 'digests' type is a stand-alone claim then it can be combined with other claims (such as boolean result) or can stand-alone as a digest of attestation results. \r\n\r\nIf there were a measurement-name claim then it would be easier to associate the name of the object with the digest of the object. submod-name could be used - it would be helpful if it was a bstr / tstr instead of just tstr so its easier to assign numeric names. \r\n\r\n",
+          "createdAt": "2021-06-08T00:38:08Z",
+          "updatedAt": "2021-06-08T00:38:08Z"
+        },
+        {
+          "author": "laurencelundblade",
+          "authorAssociation": "COLLABORATOR",
+          "body": "After a side discussion with Henk, folks from Arm and other, I took the approach of pluggable evidence formats. EAT doesn't have one format for evidence, it has a place where it can carry evidence formats defined by others.\r\n\r\nHenk and the Arm folks are working on CoRIM and CoMID as an alternative to CoSWID. It's for the reason you mention -- CoSWID is file oriented.\r\n\r\nI concluded that CoSWID is here to stay and must be accommodated, but that it isn't sufficient, so I took the pluggable approach. \r\n\r\nI don't think there's a draft for CoMID / CoRIM yet. Try here: https://github.com/ietf-rats/draft-birkholz-rats-corim/blob/master/draft-birkholz-rats-corim.md.  I don't have an opinion of whether this is good, or meets your needs or such. Maybe you want to define your own format instead. If so, it can plug into EAT. :-)\r\n\r\nAll that said, the point of this open issue is not about carrying hash values. It is about reporting to the RP whether the measurements compared correctly to the reference values. Perhaps just a simple Boolean, but probably more.\r\n\r\n\r\n\r\n",
+          "createdAt": "2021-06-08T18:21:24Z",
+          "updatedAt": "2021-06-08T18:21:24Z"
+        }
+      ]
+    },
+    {
+      "number": 110,
+      "id": "MDU6SXNzdWU5MTk4Njc4Mzg=",
+      "title": "Add a recommendation that claim value should not be interdependent",
+      "url": "https://github.com/ietf-rats-wg/eat/issues/110",
+      "state": "OPEN",
+      "author": "laurencelundblade",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "It is probably better that every claim value stand on its own as much as possible. Claims should be designed this way. If some attribute or information about an entity needs several data items to describe it, it should be all in one claim rather than in several. This is to reduce interdependence between claims.\r\n\r\nI'm not completely sure that is necessary, but it seems like a good idea.",
+      "createdAt": "2021-06-13T19:41:04Z",
+      "updatedAt": "2021-06-16T00:56:09Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "gmandyam",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't know whether this can work as general guidance.  Take for instance something like an app dependency declared in an Android manifest (i.e. intent).  If the attestable entity in question is that Android application, it would have to enumerate _all_ the attestable data from other entities (e.g. other Android applications) on which it has a dependency.  \r\n\r\nOn another note, I am not convinced that the current CoSWID spec (https://datatracker.ietf.org/doc/html/draft-ietf-sacm-coswid-16.txt) covers the notion of something like Android intents (or predecessors such as BREW extensions).  If I am correct in my interpretation, then this is a spec deficiency that should be fixed.",
+          "createdAt": "2021-06-13T20:38:08Z",
+          "updatedAt": "2021-06-13T20:38:08Z"
+        },
+        {
+          "author": "laurencelundblade",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't want a prohibition against interdependency. It could occur if needed.\r\n\r\nHere's an example of what I'd like to discourage -- one claim says what the format/type of another claim is. Instead, build the type/format determination into the claim like is done for the swevidence and manifests claim. It's pretty simple stuff.\r\n\r\nI understand why a manifest for downloading SW needs to list needed dependencies and extensions, but I'm not sure that is necessary for attestation. That said, this is not a battle I'm going to go fight (have too much other work). I am mostly assuming the designers of CoSWID, CoMID and CoRIM know what they are doing.\r\n\r\n",
+          "createdAt": "2021-06-16T00:56:09Z",
+          "updatedAt": "2021-06-16T00:56:09Z"
+        }
+      ]
+    },
+    {
+      "number": 111,
+      "id": "MDU6SXNzdWU5MjQzMTgwMzA=",
+      "title": "svn claim",
+      "url": "https://github.com/ietf-rats-wg/eat/issues/111",
+      "state": "OPEN",
+      "author": "nedmsmith",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "https://cwe.mitre.org/data/definitions/1328.html provides context for svn (security version number). There are many systems that use it. It would be helpful if EAT could include a claim for svn.\r\n\r\nSomething like:\r\n\r\nsvn-type = int\r\nsvn-claim = ( svn => svn-type)\r\n\r\nI can help contribute text if needed.\r\n",
+      "createdAt": "2021-06-17T20:41:29Z",
+      "updatedAt": "2021-06-18T20:00:57Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "laurencelundblade",
+          "authorAssociation": "COLLABORATOR",
+          "body": "If I understand, the claim would report the value of the (hopefully) immutable rollback counter that the HW is storing. This could also be thought of as the minimum firmware version. The counter / version for the firmware that is installed is reported separately from this. In most cases they will be the same. In some cases the installed firmware version may be ahead. If the installed firmware version is behind, then something very bad has happened.\r\n\r\nSo, yes, this seems like a good thing to add. Thank you.\r\n\r\nWould be better to call it \"minfw\" (minimum firmware version), or \"firmware rollback counter\"? \r\n\r\nI reused the CoSWID version scheme classification for HW version numbers. See the -10 draft. It seems like that would be the thing to do here. Just clone the hw-version claim and call it \"minfw\"?\r\n\r\nI expect the version of the installed firmware to be reported as part of the swevidence claim, most likely in a CoRIM/CoMID (CoSWIDs don't seem very good for firmware since they are file path oriented).\r\n",
+          "createdAt": "2021-06-18T20:00:57Z",
+          "updatedAt": "2021-06-18T20:00:57Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -5481,7 +5558,7 @@
       "labels": [],
       "body": "Relates to https://github.com/ietf-rats-wg/architecture/issues/293 and https://github.com/ietf-rats-wg/architecture/pull/294",
       "createdAt": "2021-04-10T19:47:01Z",
-      "updatedAt": "2021-04-23T14:33:27Z",
+      "updatedAt": "2021-06-08T15:58:26Z",
       "baseRepository": "ietf-rats-wg/eat",
       "baseRefName": "master",
       "baseRefOid": "79e0e208b558a094e60c0c7a1870af65aca48f8c",
@@ -5547,6 +5624,146 @@
               "body": "Same",
               "createdAt": "2021-04-23T14:33:17Z",
               "updatedAt": "2021-04-23T14:33:27Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3Njc4Njg0Njcy",
+          "commit": {
+            "abbreviatedOid": "855d1aa"
+          },
+          "author": "nedmsmith",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-06-08T15:37:13Z",
+          "updatedAt": "2021-06-08T15:37:13Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "Regarding lines 955 - 957: The target environment contains an attesting environment but could contain other code, setup vectors, files or code that has functionality other than that used by an attesting environment. Structures representing a layer 'target environment' should allow for multiple disparate measurements.",
+              "createdAt": "2021-06-08T15:37:13Z",
+              "updatedAt": "2021-06-08T15:37:13Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3Njc4Njg4NzA4",
+          "commit": {
+            "abbreviatedOid": "855d1aa"
+          },
+          "author": "nedmsmith",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-06-08T15:40:15Z",
+          "updatedAt": "2021-06-08T15:40:15Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "line 1118 seems wordy. Is it saying \"Trust for layers above depends on the root and possibly other layers beneath. Evidence about a layer is provided by one or more of the layers beneath.\" ",
+              "createdAt": "2021-06-08T15:40:15Z",
+              "updatedAt": "2021-06-08T15:40:15Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3Njc4Njk0OTcw",
+          "commit": {
+            "abbreviatedOid": "855d1aa"
+          },
+          "author": "nedmsmith",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-06-08T15:45:23Z",
+          "updatedAt": "2021-06-08T15:45:23Z",
+          "comments": [
+            {
+              "originalPosition": 38,
+              "body": "1117 seems to be saying \"An Endorser provides claims about the root since there isn't a layer beneath the root layer that supplies Evidence. An Endorser also provides cryptographic material used by the root to authenticate the device and to sign evidence pertaining to upper / other layers.\"",
+              "createdAt": "2021-06-08T15:45:23Z",
+              "updatedAt": "2021-06-08T15:45:23Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3Njc4NzAwMDQ1",
+          "commit": {
+            "abbreviatedOid": "855d1aa"
+          },
+          "author": "nedmsmith",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-06-08T15:49:49Z",
+          "updatedAt": "2021-06-08T15:49:49Z",
+          "comments": [
+            {
+              "originalPosition": 42,
+              "body": "1121 seems too strong. The names of the measurements pertaining to the attesting environment (or other measurements in the target) provides intended use semantics. If using submods then submod-name captures the intended semantics.\r\n\r\n1124 seems to be saying layers can be cryptographically linked, therefore it may be appropriate to include a public key in the Evidence related to an attesting environment.",
+              "createdAt": "2021-06-08T15:49:49Z",
+              "updatedAt": "2021-06-08T15:49:49Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3Njc4NzAzNjk2",
+          "commit": {
+            "abbreviatedOid": "855d1aa"
+          },
+          "author": "nedmsmith",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-06-08T15:52:59Z",
+          "updatedAt": "2021-06-08T15:53:00Z",
+          "comments": [
+            {
+              "originalPosition": 55,
+              "body": "1135 I don't see how it is possible for a lower layer to know or assert that it knows the upper layer is trusted without going through a recursive verification. However, verification is done by a verifier which is a complex function. It would be a mistake to assert that layering requires attesting environments to also be verifiers according to the RATS Arch. The is-trusted claim is actually an attestation result structure. Doesn't belong here IMO.",
+              "createdAt": "2021-06-08T15:53:00Z",
+              "updatedAt": "2021-06-08T15:53:00Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3Njc4NzA5MjYz",
+          "commit": {
+            "abbreviatedOid": "855d1aa"
+          },
+          "author": "nedmsmith",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-06-08T15:57:26Z",
+          "updatedAt": "2021-06-08T15:57:26Z",
+          "comments": [
+            {
+              "originalPosition": 61,
+              "body": "There are two ways to structure layers. (a) as nested entities or (b) as linked entities. Nesting has the undesirable side-effect that the signer (aka top layer) has to be in possession of all of the lower layer evidence in order to sign anything. This makes for ever increasing evidence blobs. Linking allows the upper layer to only sign the evidence it directly controls. The lower layer linked its evidence about the upper layer so there is no reason to counter-sign something that has already been signed by a lower layer.  Lets not think of submods as a hammer that forces nesting in ways that don't make sense.",
+              "createdAt": "2021-06-08T15:57:26Z",
+              "updatedAt": "2021-06-08T15:57:26Z"
+            }
+          ]
+        },
+        {
+          "id": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3Njc4NzEwNDEx",
+          "commit": {
+            "abbreviatedOid": "855d1aa"
+          },
+          "author": "nedmsmith",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2021-06-08T15:58:26Z",
+          "updatedAt": "2021-06-08T15:58:26Z",
+          "comments": [
+            {
+              "originalPosition": 62,
+              "body": "1141 this is too strong.",
+              "createdAt": "2021-06-08T15:58:26Z",
+              "updatedAt": "2021-06-08T15:58:26Z"
             }
           ]
         }
@@ -5633,6 +5850,86 @@
       "mergeCommit": {
         "oid": "cc627cec845b3a2f93f5c77fb0790555e6f564a3"
       },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 112,
+      "id": "MDExOlB1bGxSZXF1ZXN0NjczNzM2OTU2",
+      "title": "Add a claim to report the results of a SW measurement",
+      "url": "https://github.com/ietf-rats-wg/eat/pull/112",
+      "state": "OPEN",
+      "author": "laurencelundblade",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This can be used in Attestation Results to report the output of the Verifier's check against reference values for SW evidence to the Relying Party.\r\n\r\nThis can also be used in Attestation Evidence if the Attester has the ability to measure and verify on the device. For example Samsung TIMA can do this.\r\n\r\nThis is to address #108\r\n",
+      "createdAt": "2021-06-18T21:14:38Z",
+      "updatedAt": "2021-07-03T19:38:54Z",
+      "baseRepository": "ietf-rats-wg/eat",
+      "baseRefName": "master",
+      "baseRefOid": "754a276ee243b2f814acf17010204305fea9d1ad",
+      "headRepository": "ietf-rats-wg/eat",
+      "headRefName": "swresults",
+      "headRefOid": "9f336faa77f967610c0dd1c94d7573f914d8a756",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 113,
+      "id": "MDExOlB1bGxSZXF1ZXN0Njc2NzgxMjY2",
+      "title": "rearrange hw version type",
+      "url": "https://github.com/ietf-rats-wg/eat/pull/113",
+      "state": "MERGED",
+      "author": "laurencelundblade",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2021-06-24T04:32:32Z",
+      "updatedAt": "2021-07-01T18:15:52Z",
+      "baseRepository": "ietf-rats-wg/eat",
+      "baseRefName": "master",
+      "baseRefOid": "be1b2c42c0c6488d410015856807f8edaf8741b6",
+      "headRepository": "ietf-rats-wg/eat",
+      "headRefName": "hwv-fix",
+      "headRefOid": "fa3e5dbc6333f97289bc1a5cb16edc7ad31f1b5d",
+      "closedAt": "2021-07-01T18:15:48Z",
+      "mergedAt": "2021-07-01T18:15:48Z",
+      "mergedBy": "laurencelundblade",
+      "mergeCommit": {
+        "oid": "754a276ee243b2f814acf17010204305fea9d1ad"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 114,
+      "id": "MDExOlB1bGxSZXF1ZXN0Njg2NDE0NTEw",
+      "title": "Claim for DLOA -- Digital Letter or Approval",
+      "url": "https://github.com/ietf-rats-wg/eat/pull/114",
+      "state": "OPEN",
+      "author": "laurencelundblade",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2021-07-09T00:58:17Z",
+      "updatedAt": "2021-07-09T00:58:17Z",
+      "baseRepository": "ietf-rats-wg/eat",
+      "baseRefName": "master",
+      "baseRefOid": "754a276ee243b2f814acf17010204305fea9d1ad",
+      "headRepository": "ietf-rats-wg/eat",
+      "headRefName": "dloa",
+      "headRefOid": "7902465e6df1d5984a5a8527b21a62d2f2b0400a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
       "comments": [],
       "reviews": []
     }
