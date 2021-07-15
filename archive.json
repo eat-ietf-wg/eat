@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2021-07-09T00:58:36.633205+00:00",
+  "timestamp": "2021-07-15T05:00:49.096339+00:00",
   "repo": "ietf-rats-wg/eat",
   "labels": [
     {
@@ -2109,6 +2109,22 @@
           "updatedAt": "2021-06-18T20:00:57Z"
         }
       ]
+    },
+    {
+      "number": 115,
+      "id": "MDU6SXNzdWU5NDQ5NzMwNjU=",
+      "title": "WGS84 reference link is bad",
+      "url": "https://github.com/ietf-rats-wg/eat/issues/115",
+      "state": "OPEN",
+      "author": "laurencelundblade",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "WGS84 changed...  Lots of standards are affected.",
+      "createdAt": "2021-07-15T03:55:43Z",
+      "updatedAt": "2021-07-15T03:55:43Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
